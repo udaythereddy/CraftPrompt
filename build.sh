@@ -44,6 +44,9 @@ mkdir -p CraftPrompt.app/Contents/MacOS CraftPrompt.app/Contents/Resources
 cp CraftPrompt/CraftPrompt CraftPrompt.app/Contents/MacOS/CraftPrompt
 cp CraftPrompt/Info.plist CraftPrompt.app/Contents/Info.plist
 cp photocraft/target/release/photocraft-cli CraftPrompt.app/Contents/Resources/photocraft-cli
+if [ -f "CraftPrompt/Resources/AppIcon.icns" ]; then
+    cp CraftPrompt/Resources/AppIcon.icns CraftPrompt.app/Contents/Resources/AppIcon.icns
+fi
 chmod +x CraftPrompt.app/Contents/MacOS/CraftPrompt CraftPrompt.app/Contents/Resources/photocraft-cli
 
 # 5. Codesign with entitlements
