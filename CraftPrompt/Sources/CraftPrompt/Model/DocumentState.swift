@@ -31,6 +31,21 @@ public enum StatusState: Equatable, Sendable {
     }
 }
 
+public enum InspectorTab: String, CaseIterable, Identifiable, Sendable {
+    case layers = "Layers"
+    case history = "History"
+    case info = "Info"
+
+    public var id: String { rawValue }
+    public var sfSymbol: String {
+        switch self {
+        case .layers: return "square.3.layers.3d"
+        case .history: return "clock.arrow.circlepath"
+        case .info: return "info.circle"
+        }
+    }
+}
+
 @MainActor
 public final class DocumentState: ObservableObject {
     @Published public var canvasImage: NSImage?
@@ -45,10 +60,16 @@ public final class DocumentState: ObservableObject {
     
     @Published public var zoomScale: Double = 1.0
     @Published public var panOffset: CGSize = .zero
+    @Published public var dragStartOffset: CGSize = .zero
+    @Published public var isDropTargetHovering: Bool = false
+    @Published public var selectedInspectorTab: InspectorTab = .layers
+
     @Published public var promptText: String = ""
     @Published public var isProcessing: Bool = false
     @Published public var status: StatusState = .idle
     @Published public var isInspectorVisible: Bool = true
+    @Published public var isShowingExportSheet: Bool = false
+    @Published public var isShowingSecuritySheet: Bool = false
     
     @Published public var canUndo: Bool = false
     @Published public var canRedo: Bool = false

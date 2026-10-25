@@ -4,8 +4,6 @@ import UniformTypeIdentifiers
 
 public struct ContentView: View {
     @StateObject private var state = DocumentState()
-    @State private var isShowingExportSheet = false
-    @State private var isShowingSecuritySheet = false
 
     public init() {}
 
@@ -80,7 +78,7 @@ public struct ContentView: View {
 
                 // Security Audit
                 Button {
-                    isShowingSecuritySheet = true
+                    state.isShowingSecuritySheet = true
                 } label: {
                     Label("Security Audit", systemImage: "shield.lefthalf.filled")
                 }
@@ -88,7 +86,7 @@ public struct ContentView: View {
 
                 // Export As...
                 Button {
-                    isShowingExportSheet = true
+                    state.isShowingExportSheet = true
                 } label: {
                     Label("Export As...", systemImage: "square.and.arrow.up")
                 }
@@ -106,10 +104,10 @@ public struct ContentView: View {
                 .help("Toggle Layer & History Inspector")
             }
         }
-        .sheet(isPresented: $isShowingExportSheet) {
+        .sheet(isPresented: $state.isShowingExportSheet) {
             ExportSheet(state: state)
         }
-        .sheet(isPresented: $isShowingSecuritySheet) {
+        .sheet(isPresented: $state.isShowingSecuritySheet) {
             SecurityAuditView()
         }
         .onOpenURL { url in

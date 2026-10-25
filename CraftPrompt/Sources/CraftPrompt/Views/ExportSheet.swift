@@ -2,15 +2,20 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+public final class ExportSheetViewModel: ObservableObject {
+    @Published public var selectedFormat: ExportSheet.ExportFormat = .png
+    @Published public var quality: Double = 90.0
+    @Published public var preserveTiffLayers: Bool = false
+    @Published public var isExporting: Bool = false
+    @Published public var exportError: String? = nil
+
+    public init() {}
+}
+
 public struct ExportSheet: View {
     @ObservedObject var state: DocumentState
     @Environment(\.dismiss) private var dismiss
-
-    @State private var selectedFormat: ExportFormat = .png
-    @State private var quality: Double = 90.0
-    @State private var preserveTiffLayers: Bool = false
-    @State private var isExporting: Bool = false
-    @State private var exportError: String? = nil
+    @StateObject private var vm = ExportSheetViewModel()
 
     public enum ExportFormat: String, CaseIterable, Identifiable {
         case png = "PNG"
@@ -64,7 +69,7 @@ public struct ExportSheet: View {
                         .font(.caption.weight(.medium))
                         .foregroundColor(.secondary)
 
-                    Picker("Format", selection: $selectedFormat) {
+                    Picker("Format", selection: $vm.selectedFormat) {
                         ForEach(ExportFormat.allCases) { fmt in
                             Text(fmt.rawValue).tag(fmt)
                         }
@@ -73,24 +78,24 @@ public struct ExportSheet: View {
                 }
 
                 // JPEG Quality Slider
-                if selectedFormat == .jpeg || selectedFormat == .webp {
+                if vm.selectedFormat == .jpeg || vm.selectedFormat == .webp {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
                             Text("Quality")
                                 .font(.caption.weight(.medium))
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text("\(Int(quality))%")
+                            Text("\(Int(vm.quality))%")
                                 .font(.system(.caption, design: .monospaced).weight(.semibold))
                         }
 
-                        Slider(value: $quality, in: 10...100, step: 1)
+                        Slider(value: $vm.quality, in: 10...100, step: 1)
                     }
                 }
 
                 // TIFF Layers Toggle
-                if selectedFormat == .tiff {
-                    Toggle("Preserve Photoshop Layer Structure", isOn: $preserveTiffLayers)
+                if vm.selectedFormat == .tiff {
+                    Toggle("Preserve Photoshop Layer Structure", isOn: $vm.preserveTiffLayers)
                         .font(.caption)
                 }
 
@@ -106,7 +111,7 @@ public struct ExportSheet: View {
                 .padding(10)
                 .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8))
 
-                if let err = exportError {
+                if let err = vm.exportError {
                     Text(err)
                         .font(.caption)
                         .foregroundColor(.red)
@@ -125,7 +130,7 @@ public struct ExportSheet: View {
                 Button {
                     promptSavePanel()
                 } label: {
-                    if isExporting {
+                    if vm.isExporting {
                         ProgressView().controlSize(.small)
                     } else {
                         Text("Export...")
@@ -133,7 +138,7 @@ public struct ExportSheet: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
-                .disabled(isExporting)
+                .disabled(vm.isExporting)
             }
         }
         .padding(24)
@@ -143,27 +148,27 @@ public struct ExportSheet: View {
     private func promptSavePanel() {
         let panel = NSSavePanel()
         panel.canCreateDirectories = true
-        panel.allowedContentTypes = [selectedFormat.utType]
+        panel.allowedContentTypes = [vm.selectedFormat.utType]
         let baseName = state.documentURL?.deletingPathExtension().lastPathComponent ?? "Exported_Image"
-        panel.nameFieldStringValue = "\(baseName).\(selectedFormat.fileExtension)"
+        panel.nameFieldStringValue = "\(baseName).\(vm.selectedFormat.fileExtension)"
 
         if panel.runModal() == .OK, let targetURL = panel.url {
-            isExporting = true
+            vm.isExporting = true
             Task {
                 do {
                     try await state.export(
                         to: targetURL,
-                        format: selectedFormat.fileExtension,
-                        quality: Int(quality)
+                        format: vm.selectedFormat.fileExtension,
+                        quality: Int(vm.quality)
                     )
                     await MainActor.run {
-                        isExporting = false
+                        vm.isExporting = false
                         dismiss()
                     }
                 } catch {
                     await MainActor.run {
-                        self.exportError = error.localizedDescription
-                        self.isExporting = false
+                        vm.exportError = error.localizedDescription
+                        vm.isExporting = false
                     }
                 }
             }

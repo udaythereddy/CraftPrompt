@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TranslationResult: Sendable {
+public struct TranslationResult: @unchecked Sendable {
     public let commands: [(command: String, params: [String: Any])]
     public let summary: String
     public let isUndo: Bool

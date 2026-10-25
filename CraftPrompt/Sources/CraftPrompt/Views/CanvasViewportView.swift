@@ -4,8 +4,6 @@ import UniformTypeIdentifiers
 
 public struct CanvasViewportView: View {
     @ObservedObject var state: DocumentState
-    @State private var dragStartOffset: CGSize = .zero
-    @State private var hoverPoint: CGPoint? = nil
 
     public init(state: DocumentState) {
         self.state = state
@@ -45,12 +43,12 @@ public struct CanvasViewportView: View {
                         DragGesture()
                             .onChanged { value in
                                 state.panOffset = CGSize(
-                                    width: dragStartOffset.width + value.translation.width,
-                                    height: dragStartOffset.height + value.translation.height
+                                    width: state.dragStartOffset.width + value.translation.width,
+                                    height: state.dragStartOffset.height + value.translation.height
                                 )
                             }
                             .onEnded { _ in
-                                dragStartOffset = state.panOffset
+                                state.dragStartOffset = state.panOffset
                             }
                     )
                     .gesture(
@@ -59,14 +57,6 @@ public struct CanvasViewportView: View {
                                 state.zoomScale = min(max(state.zoomScale * scale, 0.1), 16.0)
                             }
                     )
-                    .onContinuousHover { phase in
-                        switch phase {
-                        case .active(let location):
-                            hoverPoint = location
-                        case .ended:
-                            hoverPoint = nil
-                        }
-                    }
                 } else {
                     // Empty State: Drag & Drop Zone
                     EmptyDropZoneView(state: state)
@@ -192,7 +182,6 @@ struct SplitComparisonView: View {
 
 struct EmptyDropZoneView: View {
     @ObservedObject var state: DocumentState
-    @State private var isHovering = false
 
     var body: some View {
         VStack(spacing: 18) {
@@ -242,7 +231,7 @@ struct EmptyDropZoneView: View {
         .background(
             RoundedRectangle(cornerRadius: 18)
                 .strokeBorder(
-                    Color.accentColor.opacity(isHovering ? 0.6 : 0.2),
+                    Color.accentColor.opacity(state.isDropTargetHovering ? 0.6 : 0.2),
                     style: StrokeStyle(lineWidth: 2, dash: [8, 8])
                 )
                 .background(
@@ -251,7 +240,7 @@ struct EmptyDropZoneView: View {
                 )
         )
         .padding(32)
-        .onDrop(of: [.fileURL], isTargeted: $isHovering) { providers in
+        .onDrop(of: [.fileURL], isTargeted: $state.isDropTargetHovering) { providers in
             guard let provider = providers.first else { return false }
             provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
                 guard let data = item as? Data,

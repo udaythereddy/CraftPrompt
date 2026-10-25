@@ -2,22 +2,6 @@ import SwiftUI
 
 public struct InspectorDrawer: View {
     @ObservedObject var state: DocumentState
-    @State private var selectedTab: InspectorTab = .layers
-
-    public enum InspectorTab: String, CaseIterable, Identifiable {
-        case layers = "Layers"
-        case history = "History"
-        case info = "Info"
-
-        public var id: String { rawValue }
-        public var sfSymbol: String {
-            switch self {
-            case .layers: return "square.3.layers.3d"
-            case .history: return "clock.arrow.circlepath"
-            case .info: return "info.circle"
-            }
-        }
-    }
 
     public init(state: DocumentState) {
         self.state = state
@@ -26,7 +10,7 @@ public struct InspectorDrawer: View {
     public var body: some View {
         VStack(spacing: 0) {
             // Header Segmented Control
-            Picker("Inspector View", selection: $selectedTab) {
+            Picker("Inspector View", selection: $state.selectedInspectorTab) {
                 ForEach(InspectorTab.allCases) { tab in
                     Label(tab.rawValue, systemImage: tab.sfSymbol).tag(tab)
                 }
@@ -37,7 +21,7 @@ public struct InspectorDrawer: View {
             Divider()
 
             // Tab Content
-            switch selectedTab {
+            switch state.selectedInspectorTab {
             case .layers:
                 LayersTabContent(state: state)
             case .history:
@@ -87,13 +71,6 @@ struct LayersTabContent: View {
 struct LayerRowView: View {
     let layer: LayerItem
     @ObservedObject var state: DocumentState
-    @State private var opacity: Double
-
-    init(layer: LayerItem, state: DocumentState) {
-        self.layer = layer
-        self.state = state
-        self._opacity = State(initialValue: layer.opacity)
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -150,14 +127,20 @@ struct LayerRowView: View {
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
 
-                    Slider(value: $opacity, in: 0.0...1.0) { _ in
-                        Task {
-                            await state.setLayerOpacity(layer: layer, opacity: opacity)
-                        }
-                    }
+                    Slider(
+                        value: Binding(
+                            get: { layer.opacity },
+                            set: { newOpacity in
+                                Task {
+                                    await state.setLayerOpacity(layer: layer, opacity: newOpacity)
+                                }
+                            }
+                        ),
+                        in: 0.0...1.0
+                    )
                     .controlSize(.mini)
 
-                    Text("\(Int((opacity * 100).rounded()))%")
+                    Text("\(Int((layer.opacity * 100).rounded()))%")
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(.secondary)
                         .frame(width: 32, alignment: .trailing)

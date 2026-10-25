@@ -1,8 +1,16 @@
 import SwiftUI
 
+public final class SecurityAuditViewModel: ObservableObject {
+    @Published public var auditChecks: [SecurityAuditCheck] = []
+
+    public init() {
+        self.auditChecks = SecurityAuditor.runAudit()
+    }
+}
+
 public struct SecurityAuditView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var auditChecks: [SecurityAuditCheck] = []
+    @StateObject private var viewModel = SecurityAuditViewModel()
 
     public init() {}
 
@@ -32,7 +40,7 @@ public struct SecurityAuditView: View {
             Divider()
 
             // List of checks
-            List(auditChecks) { check in
+            List(viewModel.auditChecks) { check in
                 HStack(alignment: .top, spacing: 14) {
                     Image(systemName: check.passed ? "checkmark.shield.fill" : "xmark.shield.fill")
                         .font(.system(size: 20))
@@ -77,8 +85,5 @@ public struct SecurityAuditView: View {
             .padding(16)
         }
         .frame(width: 540, height: 460)
-        .onAppear {
-            self.auditChecks = SecurityAuditor.runAudit()
-        }
     }
 }

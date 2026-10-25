@@ -28,9 +28,11 @@ echo "==> Building photocraft-cli (Rust release binary)..."
 cargo build --release --manifest-path photocraft/Cargo.toml -p photocraft-cli
 
 # 3. Build CraftPrompt native macOS executable
-echo "==> Compiling CraftPrompt native Swift/SwiftUI application..."
+echo "==> Compiling CraftPrompt native Swift/SwiftUI application (macOS 14.0+ deployment target)..."
+export MACOSX_DEPLOYMENT_TARGET=14.0
 mkdir -p /tmp/clang-cache
-swiftc -Xcc -fmodules-cache-path=/tmp/clang-cache \
+swiftc -target arm64-apple-macosx14.0 \
+       -Xcc -fmodules-cache-path=/tmp/clang-cache \
        -module-cache-path /tmp/clang-cache \
        -parse-as-library \
        $(find CraftPrompt/Sources/CraftPrompt -name "*.swift") \
