@@ -1,0 +1,18 @@
+# Build artifacts
+.build/
+DerivedData/
+*.o
+*.pcm
+*.dSYM
+CraftPrompt/CraftPrompt
+CraftPrompt.app/
+photocraft/target/
+
+# OS artifacts
+.DS_Store
+*.swp
+*~
+
+# Temporary files
+/tmp/
+*.tmp
