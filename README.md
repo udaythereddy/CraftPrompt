@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="CraftPrompt/Resources/AppIcon_1024.png" width="140" alt="CraftPrompt macOS App Icon" />
+</p>
+
 # CraftPrompt 🎨✨
 
 **CraftPrompt** is a native macOS desktop application built in Swift and SwiftUI that enables users to edit images using natural language text prompts. The core editing backend runs entirely locally on your laptop by interfacing directly with the open-source Rust project [`storytold/photocraft`](https://github.com/storytold/photocraft).
@@ -82,9 +86,10 @@ open CraftPrompt.app
 To run all 28 automated security, parameter validation, translation, and live engine integration tests:
 
 ```bash
-swiftc -Xcc -fmodules-cache-path=/tmp/clang-cache \
+export MACOSX_DEPLOYMENT_TARGET=14.0
+swiftc -target arm64-apple-macosx14.0 \
+       -Xcc -fmodules-cache-path=/tmp/clang-cache \
        -module-cache-path /tmp/clang-cache \
-       -parse-as-library \
        CraftPrompt/Sources/CraftPrompt/Model/CommandModels.swift \
        CraftPrompt/Sources/CraftPrompt/Model/LayerInfo.swift \
        CraftPrompt/Sources/CraftPrompt/Model/HistoryStep.swift \
